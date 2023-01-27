@@ -1,0 +1,8 @@
+{
+  "name": "home-pi",
+  "version": "0.0.0",
+  "scripts": {
+    "start-pi": "", // node env that uses real matrix
+    "start": "", // node env that uses stubbed matrix
+  },
+}
