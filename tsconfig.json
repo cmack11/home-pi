@@ -99,7 +99,13 @@
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true,                               /* Skip type checking all .d.ts files. */
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+        "controllers/*": ["./src/controllers/*"],
+        "models/*": ["./src/models/*"],
+        "routes/*": ["./src/routes/*"],
+    }
   },
   "exclude": [
         "garbage"

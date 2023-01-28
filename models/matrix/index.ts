@@ -4,6 +4,7 @@ export const start = () => {
 	console.log('ccm','starting script');
 	const matrix = getMatrix();
 
+	// @ts-expect-error 
 	if(!matrix.afterSync) return;
 
 	// @ts-expect-error 
