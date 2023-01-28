@@ -1,7 +1,12 @@
 import { getMatrix } from './screen';
 
+export const status = {
+	running: false
+}
+
 export const start = () => {
 	console.log('ccm','starting script');
+	status.running = true;
 	const matrix = getMatrix();
 
 	// @ts-expect-error 
@@ -19,12 +24,18 @@ export const start = () => {
 			Math.round(Math.random() * mat.width()),
 			Math.round(Math.random() * mat.height())
 		);
-	
-	setTimeout(() => mat.sync(), .1*1000);
+	if(status.running)
+		setTimeout(() => mat.sync(), .1*1000);
+	else 
+		mat.clear();
 })
 
 matrix
 // @ts-expect-error 
   .clear()
   .sync();
+}
+
+export const stop = () => {
+	status.running = false;
 }
