@@ -40,7 +40,8 @@ const mailListener = new MailListener({
   searchFilter: ["UNSEEN", ["SINCE", new Date().getTime()]], // the search filter being used after an IDLE notification has been retrieved
   markSeen: true, // all fetched email will be marked as seen and not fetched next time
   fetchUnreadOnStart: true, // use it only if you want to get all unread email on lib start. Default is `false`,
-  attachments: false, // get mail attachments as they are encountered
+  attachments: true, // get mail attachments as they are encountered
+  attachmentOptions: { directory: "attachments/" }
 });
 
 mailListener.on("server:connected", function(){
@@ -65,9 +66,11 @@ mailListener.on("error", function(err){
 mailListener.on("mail", function(mail, seqno) {
   const parsed = parse(mail.html);
   const element = parsed.querySelector("td");
-  console.log("MAIL",mail, parsed, element)
+  console.log("MAIL",mail, parsed, element, mail.attachments)
   let message = '';
-  if(element)
+  if(mail.attachments.length)
+  	message = mail.attachments[0].content.toString()
+  else if(element)
   	message = element.textContent.trim();
   if(message) {
   	console.log("Recieved Message:", message)
