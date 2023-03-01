@@ -47,6 +47,7 @@ mailListener.on("server:connected", function(){
   console.log("imapConnected");
 });
 
+// @ts-expect-error
 mailListener.on("mailbox", function(mailbox){
   console.log("Total number of mails: ", mailbox.messages.total); // this field in mailbox gives the total number of emails
 });
@@ -55,10 +56,12 @@ mailListener.on("server:disconnected", function(){
   console.log("imapDisconnected");
 });
 
+// @ts-expect-error
 mailListener.on("error", function(err){
   console.log(err);
 });
 
+// @ts-expect-error
 mailListener.on("mail", function(mail, seqno) {
   const parsed = parse(mail.html);
   const element = parsed.querySelector("td");
