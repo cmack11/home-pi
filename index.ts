@@ -25,7 +25,7 @@ const transporter = nodemailer.createTransport(
     },
     logger: true
   })
-console.log(process.env)
+
 const mailListener = new MailListener({
   username: process.env.EMAIL_USER, // mail
   password: process.env.EMAIL_PASS, // pass
