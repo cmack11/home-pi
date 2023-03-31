@@ -75,7 +75,6 @@ export class MailController {
 			message = element.textContent.trim();
 		if(message) {
 			console.log("Recieved Message:", message)
-			MailMenu.handleInput({ input: message });
 			this.sendMail({ to: `${mail.from.text}`, message: MailMenu.handleInput({ input: message })})
 		} else {
 			console.error("Error Parsing Message:", parsed)
