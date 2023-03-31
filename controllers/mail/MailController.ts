@@ -65,9 +65,11 @@ export class MailController {
 	mailListener.on("mail", (mail, seqno) => {
 		const parsed = parse(mail.html);
 		const element = parsed.querySelector("td");
-		console.log("MAIL",mail, parsed, element, mail.attachments)
+		console.log("MAIL", mail.text, mail.attachments, parsed, element)
 		let message = '';
-		if(mail.attachments.length)
+		if(mail.text)
+			message = mail.text.trim();
+		else if(mail.attachments.length)
 			message = mail.attachments[0].content.toString();
 		else if(element)
 			message = element.textContent.trim();
@@ -76,7 +78,7 @@ export class MailController {
 			MailMenu.handleInput({ input: message });
 			this.sendMail({ to: `${mail.from.text}`, message: MailMenu.handleInput({ input: message })})
 		} else {
-			console.log("Error Parsing Message:", parsed)
+			console.error("Error Parsing Message:", parsed)
 		}
 	})
 	mailListener.start();
