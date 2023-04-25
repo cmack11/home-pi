@@ -5,7 +5,7 @@ import {
   MailListener,
 } from "mail-listener5"; 
 import { applicationsRouter } from './routes';
-import { SpotifyManager, MailController } from './controllers';
+import { MailController } from './controllers';
 
 dotenv.config();
 
@@ -19,6 +19,4 @@ app.use('/applications', applicationsRouter)
 
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-
-  SpotifyManager.init();
 });

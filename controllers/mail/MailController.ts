@@ -5,6 +5,8 @@ import {
 } from "mail-listener5";  
 import { parse } from "node-html-parser";
 import { MailMenu } from './MailMenu';
+import { SpotifyManager } from '../spotify';
+import { convertInboundToOutboundAddress } from './utilities';
 
 dotenv.config();
 
@@ -13,6 +15,7 @@ export class MailController {
 	public mailListener: any | undefined;
 
    constructor() {
+   	SpotifyManager.init();
   	const mailTransporter = nodemailer.createTransport({
 	    host: 'smtp.gmail.com',
 	    port: 587,
@@ -33,7 +36,7 @@ export class MailController {
 		tls: true, // tls
 		connTimeout: 10000, // Default by node-imap
 		authTimeout: 5000, // Default by node-imap,
-		debug: console.log, // Or your custom function with only one incoming argument. Default: null
+		// debug: console.log, // Or your custom function with only one incoming argument. Default: null
 		tlsOptions: { rejectUnauthorized: false },
 		mailbox: "INBOX", // mailbox to monitor
 		searchFilter: ["UNSEEN", ["SINCE", new Date().getTime()]], // the search filter being used after an IDLE notification has been retrieved
@@ -75,7 +78,9 @@ export class MailController {
 			message = element.textContent.trim();
 		if(message) {
 			console.log("Recieved Message:", message)
-			this.sendMail({ to: `${mail.from.text}`, message: MailMenu.handleInput({ input: message })})
+			MailMenu.handleInput({ input: message }).then((message = 'Error processing return message') => {
+				this.sendMail({ to: convertInboundToOutboundAddress({ to: mail.from.text }), message })
+			})
 		} else {
 			console.error("Error Parsing Message:", parsed)
 		}
@@ -91,7 +96,7 @@ export class MailController {
    		console.error('no instance of mail transporter')
    		return;
    	}
-
+   	console.log('sending email:', to, message)
    	this.mailTransporter.sendMail({
   		to: to,
   		from:"homepireceiver@gmail.com",

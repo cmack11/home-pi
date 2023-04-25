@@ -1,7 +1,7 @@
-
+import { SpotifyManager } from '..';
 
 export class MailMenu {
-	public static handleInput({ input = "" }: { input: string }) {
+	public static async handleInput({ input = "" }: { input: string }) {
 		const inputWords = input.split(" ");
 		const command = inputWords?.shift()?.toLowerCase();
 		const rest = inputWords?.join(" ");
@@ -10,6 +10,9 @@ export class MailMenu {
 		switch(command) {
 			case "hi":
 				return MailMenu.handleHi({input: rest})
+			case "queue":
+				const message = await SpotifyManager.parseLinkAndAddToQueue(rest);
+				return message;
 			default:
 				return `Possible commands: "HI"`
 		}

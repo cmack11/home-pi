@@ -105,6 +105,7 @@
         "controllers/*": ["./src/controllers/*"],
         "models/*": ["./src/models/*"],
         "routes/*": ["./src/routes/*"],
+        "config/*": ["./src/config/*"],
     }
   },
   "exclude": [
