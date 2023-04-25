@@ -106,7 +106,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    			try {
    			const { data, status } = await spotifyPost<any, any>(
    				`https://api.spotify.com/v1/me/player/queue?uri=spotify:track:${trackURI}`,
-   				serialize({ }))
+   				{})
    			//console.log('queue response',data, status)
    		} catch(error: any) {
    			console.error(error.response.data)
@@ -114,9 +114,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    		}
 
    		static async parseLinkAndAddToQueue(link: string) {
-   			console.log('got link',link);
    			const uri = await SpotifyManager.getURI(link);
-   			console.log('got uri', uri)
    			if(uri) {
    				const { currently_playing, queue: initialQueue } = await SpotifyManager.getQueue();
    				const initialIndex = initialQueue?.findIndex(o =>  o?.uri?.includes(uri)) ?? -1;

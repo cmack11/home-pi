@@ -41,7 +41,7 @@ export class MailController {
 		mailbox: "INBOX", // mailbox to monitor
 		searchFilter: ["UNSEEN", ["SINCE", new Date().getTime()]], // the search filter being used after an IDLE notification has been retrieved
 		markSeen: true, // all fetched email will be marked as seen and not fetched next time
-		fetchUnreadOnStart: true, // use it only if you want to get all unread email on lib start. Default is `false`,
+		fetchUnreadOnStart: false, // use it only if you want to get all unread email on lib start. Default is `false`,
 		attachments: true, // get mail attachments as they are encountered
 		attachmentOptions: { directory: "attachments/" }
 	});
@@ -68,7 +68,7 @@ export class MailController {
 	mailListener.on("mail", (mail, seqno) => {
 		const parsed = parse(mail.html);
 		const element = parsed.querySelector("td");
-		console.log("MAIL", mail.text, mail.attachments, parsed, element)
+		// console.log("MAIL", mail.text, mail.attachments, parsed, element)
 		let message = '';
 		if(mail.text)
 			message = mail.text.trim();

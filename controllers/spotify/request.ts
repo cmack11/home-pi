@@ -1,17 +1,14 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { SpotifyManager } from './';
 
-export const spotifyRequestWrapper = async <TResponse>(promise: Promise<TResponse | { isRefreshed: boolean }>) => {
-	return promise?.catch(async (e) => {
-		const status = e?.response?.status;
-		console.log('error wrapper status', status)
+export const spotifyAuthErrorCheck = async <TResponse>({error, refetch}: { error: any, refetch: () => Promise<TResponse> }) => {
+		const status = error?.response?.status;
 		if(status !== 401) {
-			throw e;
+			throw error;
 		}
 
 		await SpotifyManager.refresh();
-		return { isRefreshed: true};
-	})
+		return refetch();
 }
 
 const getConfig = () => {
@@ -22,27 +19,21 @@ const getConfig = () => {
 
 export const spotifyGet = async <TResponse>(path: string) => {
 	const config = getConfig();
-	// @ts-expect-error
-	const response = spotifyRequestWrapper<TResponse>(axios.get<TResponse>(path, config)).then((res) => {
-		// @ts-expect-error
-		if(res?.isRefreshed) {
+	const response = axios.get<TResponse>(path, config)
+		.catch((error) => spotifyAuthErrorCheck<AxiosResponse<TResponse>>({ error, refetch: () => {
 			return axios.get<TResponse>(path, getConfig())
-		}
-		return res as TResponse; 
-	});
+		}}))
 
 	return response;
 }
 
 export const spotifyPost = async <TRequest, TResponse>(path: string, data: TRequest) => {
 	const config = getConfig();
-	const response = spotifyRequestWrapper<TResponse>(axios.post<TRequest, TResponse>(path, data, config)).then((res) => {
-		// @ts-expect-error
-		if(res?.isRefreshed) {
-			return axios.post<TRequest, TResponse>(path, data, getConfig())
-		}
-		return res; 
-	});
+	const response = axios.post<TRequest, TResponse>(path, data, config)
+		.catch((error) => spotifyAuthErrorCheck<TResponse>({ error, refetch: () => {
+			return axios.post<TRequest, TResponse>(path, data, getConfig());
+		}}))
+
 
 	return response;
 }
