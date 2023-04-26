@@ -2,7 +2,7 @@ import axios from 'axios'
 import dotenv from 'dotenv';
 import fs from 'fs';
 import { Buffer } from 'buffer'
-import { serialize } from './utilities';
+import { serialize, pluralize, getQueueResponseMessage } from './utilities';
 import { spotifyGet, spotifyPost } from './request';
 
 interface TokenResponse {
@@ -46,8 +46,6 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
   			await SpotifyManager.refresh();
   			//console.log('got token', SpotifyManager.token);
   		}
-  		//console.log('get playback')
-  		//SpotifyManager.getCurrentPlayback();
    }
 
    static getToken() {
@@ -57,6 +55,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
 
 
    static async refresh() {
+   		console.log('refreshing token')
   		var options = {
       			grant_type: 'refresh_token', 
       			refresh_token
@@ -76,7 +75,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    		static async getCurrentPlayback() {
    			try {
    			const { data, status } = await spotifyGet<PlaybackResponse>("https://api.spotify.com/v1/me/player")
-   			console.log('playback ',data)
+   			return data;
    		} catch(error: any) {
    			console.error("error getting playback",error?.response?.data)
    		}
@@ -88,46 +87,78 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    				link)
    			const linkWithURI = data.match(/(open.spotify.com\/track\/[\w-]+)/g)?.[0] ?? '';
    			const uri = linkWithURI?.substring(linkWithURI?.search(/\/[\w-]+/))?.replace("/track/","") ?? '';
+   			if(!uri) {
+   				throw new Error("ERROR: Parse error\n\nCould not find song id")
+   			}
    			return uri;
    		} catch(error: any) {
    			console.error("error getting uri", error?.response?.data)
+   			throw new Error("ERROR: Uknown Link\n\nCould not find song id")
    		}
    		}
 
    		static async getQueue() {
-   			const { data, status } = await spotifyGet<QueueResponse>("https://api.spotify.com/v1/me/player/queue")
-   			// console.log('#####################')
-   			// console.log('queue', data?.queue?.length, data)
-   			// console.log('#####################')
-   			return data;
+   			try {
+	   			const { data, status } = await spotifyGet<QueueResponse>("https://api.spotify.com/v1/me/player/queue")
+	   			return data;
+	   		} catch(error: any) {
+	   			console.error("error getting queue", error?.response?.data)
+	   			throw new Error("ERROR: Could not fetch queue")
+	   		}
    		}
 
    		static async addToQueue(trackURI: string) {
    			try {
-   			const { data, status } = await spotifyPost<any, any>(
-   				`https://api.spotify.com/v1/me/player/queue?uri=spotify:track:${trackURI}`,
-   				{})
-   			//console.log('queue response',data, status)
-   		} catch(error: any) {
-   			console.error(error.response.data)
+   				const { data, status } = await spotifyPost<any, any>(
+   					`https://api.spotify.com/v1/me/player/queue?uri=spotify:track:${trackURI}`,
+   					{})
+   			} catch(error: any) {
+	   			const { status, message, reason } = error?.response?.data?.error ?? {};
+	   			if(reason === "NO_ACTIVE_DEVICE") {
+	   				throw new Error("ERROR: Could Not Add\n\nNo device is actively playing")
+	   			}
+	   			console.error('error adding to queue',error?.response?.data)
+	   			throw error;
+   			}
    		}
+
+   		static async getQueuePosition(uri: string) {
+   			try {
+   				const { currently_playing, queue: initialQueue } = await SpotifyManager.getQueue();
+   				const initialIndex = initialQueue?.findIndex(o =>  o?.uri?.includes(uri)) ?? -1;
+   				const isCurrentlyPlaying = currently_playing?.uri.includes(uri)
+   				if(isCurrentlyPlaying) {
+   					return 0;
+   				} else if(initialIndex !== -1) {
+   					return initialIndex+1;
+   				}
+   			} catch(error) {
+   				return -1;
+   			}
    		}
 
    		static async parseLinkAndAddToQueue(link: string) {
    			const uri = await SpotifyManager.getURI(link);
    			if(uri) {
-   				const { currently_playing, queue: initialQueue } = await SpotifyManager.getQueue();
-   				const initialIndex = initialQueue?.findIndex(o =>  o?.uri?.includes(uri)) ?? -1;
-   				const isCurrentlyPlaying = currently_playing?.uri.includes(uri)
-   				if(isCurrentlyPlaying) {
-   					return `Not added. Request is already playing`
-   				} else if(initialIndex !== -1) {
-   					return `Not added. Request is already ${initialIndex+1} in line`
+   				const position = await SpotifyManager.getQueuePosition(uri) ?? -1;
+   				console.log(`position: ${position}`)
+   				if(position > -1) {
+   					return getQueueResponseMessage(position, { base: "Not added." })
    				}
    				await SpotifyManager.addToQueue(uri);
-   				const { queue } = await SpotifyManager.getQueue();
-   				const index = queue?.findIndex(o =>  o?.uri?.includes(uri)) ?? -1;
-   				return index !== -1 ? `Added. Your request is ${index+1} in line` : "Error adding";
+   				const addedPosition = await SpotifyManager.getQueuePosition(uri) ?? -1;
+   				console.log(`addedPosition: ${addedPosition}`)
+   				if(addedPosition > -1)
+   					return getQueueResponseMessage(addedPosition, { 
+   						base: "Added!",
+   						currentlyPlayingMessage: "",
+   						upNextMessage: "Your song is up next",
+   						defaultMessagePrefix: "Your song is " ,
+   						defaultMessagePostfix: " in the queue",
+   					})
+   				else 
+   					throw new Error("ERROR: Song not found after adding to queue")
+
    			}
    		}
 
