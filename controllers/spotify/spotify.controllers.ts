@@ -93,7 +93,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    			return uri;
    		} catch(error: any) {
    			console.error("error getting uri", error?.response?.data)
-   			throw new Error("ERROR: Uknown Link\n\nCould not find song id")
+   			throw new Error("ERROR: Unknown link\n\nCould not find song id")
    		}
    		}
 
