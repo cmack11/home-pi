@@ -9,6 +9,8 @@
   "scripts": {
     "build": "npx tsc",
     "start": "sudo node dist/index.js",
+    "start:pi": "npx tsc && sudo pm2 start dist/index.js ",
+    "kill:pi": "sudo pm2 delete all",
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
   },
   "repository": {
