@@ -10,8 +10,10 @@ export class MailMenu {
 		switch(command) {
 			case "queue":
 				return await MailMenu.handleQueueInput({ input: rest });
+			//case "add":
+				//return await MailMenu.handleAddInput({ input: rest });
 			case "help":
-				return `Possible commands:\n - QUEUE`; 
+				return `Possible commands:\n - QUEUE\n - ADD`; 
 			case "slay":
 				return "purr";
 			case "purr":
@@ -32,6 +34,23 @@ export class MailMenu {
 
 		try {
 			const response = await SpotifyManager.parseLinkAndAddToQueue(input);
+			return response;
+		} catch(error: any) {
+			return error?.message ?? "Unknown Error. Could not complete request";
+		}
+	}
+
+	public static async handleAddInput({ input }: { input: string}) {
+		if(input?.trim()?.split(" ")?.length != 1) {
+			return `Error improper usage\n\nUse "ADD HELP" to view proper usage `;
+		} else if(input?.trim()?.toLowerCase() === 'help') {
+			return `Possible commands:\n - add <spotify_track_link>`;
+		} else if(!input?.match(/https:\/\/open\.spotify\.com\/track\//)) {
+			return "Error improper usage\n\nSpotify link must be a track link"
+		}
+
+		try {
+			const response = await SpotifyManager.parseLinkAndAddToPlaylist(input);
 			return response;
 		} catch(error: any) {
 			return error?.message ?? "Unknown Error. Could not complete request";

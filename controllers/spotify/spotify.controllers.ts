@@ -140,6 +140,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    		static async parseLinkAndAddToQueue(link: string) {
    			const uri = await SpotifyManager.getURI(link);
    			if(uri) {
+   				SpotifyManager.addToPlaylist(uri);
    				const position = await SpotifyManager.getQueuePosition(uri) ?? -1;
    				console.log(`position: ${position}`)
    				if(position > -1) {
@@ -159,6 +160,34 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    				else 
    					throw new Error("ERROR: Song not found after adding to queue")
 
+   			}
+   		}
+
+   		static async parseLinkAndAddToPlaylist(link: string) {
+   			const uri = await SpotifyManager.getURI(link);
+   			if(uri) {
+   				// check playlist to see if it exists first
+   				await SpotifyManager.addToPlaylist(uri)
+   				// add playlist title to success message
+   				return `Success! Your request is now in the playlist`;
+   			}
+   		}
+
+   		static async addToPlaylist(trackURI: string, playlistId: string = "5Nk623STRCyYwH7XhX32R6") {
+   			try {
+   				const { data, status } = await spotifyPost<any, any>(
+   					`https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+   					{
+   						uris:[`spotify:track:${trackURI}`]
+   					})
+   				return data;
+   			} catch(error: any) {
+	   			const { status, message, reason } = error?.response?.data?.error ?? {};
+	   			/*if(reason === "NO_ACTIVE_DEVICE") {
+	   				throw new Error("ERROR: Could Not Add\n\nNo device is actively playing")
+	   			}*/
+	   			console.error('error adding to playlist',error?.response?.data)
+	   			throw new Error(message);
    			}
    		}
 

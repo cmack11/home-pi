@@ -55,8 +55,10 @@ export class MailController {
 		console.log("Total number of mails: ", mailbox.messages.total); // this field in mailbox gives the total number of emails
 	});
 
-	mailListener.on("server:disconnected", function(){
+	mailListener.on("server:disconnected", () => {
 		console.log("imapDisconnected");
+		this.mailListener.stop();
+		this.mailListener.start();
 	});
 
 	// @ts-expect-error
