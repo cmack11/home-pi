@@ -57,8 +57,7 @@ export class MailController {
 
 	mailListener.on("server:disconnected", () => {
 		console.log("imapDisconnected");
-		this.mailListener.stop();
-		this.mailListener.start();
+		process.exit(0); // exitting the whole app so that the entire thing is restarted
 	});
 
 	// @ts-expect-error
