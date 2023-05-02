@@ -6,7 +6,7 @@ import {
 import { parse } from "node-html-parser";
 import { MailMenu } from './MailMenu';
 import { SpotifyManager } from '../spotify';
-import { convertInboundToOutboundAddress } from './utilities';
+import { convertInboundToOutboundAddress, createMailListener } from './utilities';
 
 dotenv.config();
 
@@ -28,48 +28,43 @@ export class MailController {
 	    logger: true
  	})
 
-	const mailListener = new MailListener({
-		username: process.env.EMAIL_USER, // mail
-		password: process.env.EMAIL_PASS, // pass
-		host: "smtp.gmail.com", // host
-		port: 993, // imap port
-		tls: true, // tls
-		connTimeout: 10000, // Default by node-imap
-		authTimeout: 5000, // Default by node-imap,
-		// debug: console.log, // Or your custom function with only one incoming argument. Default: null
-		tlsOptions: { rejectUnauthorized: false },
-		mailbox: "INBOX", // mailbox to monitor
-		searchFilter: ["UNSEEN", ["SINCE", new Date().getTime()]], // the search filter being used after an IDLE notification has been retrieved
-		markSeen: true, // all fetched email will be marked as seen and not fetched next time
-		fetchUnreadOnStart: false, // use it only if you want to get all unread email on lib start. Default is `false`,
-		attachments: true, // get mail attachments as they are encountered
-		attachmentOptions: { directory: "attachments/" }
-	});
+	const mailListener = createMailListener();
+	this.mailListener = mailListener;
+	this.mailTransporter = mailTransporter;
 
-	mailListener.on("server:connected", function(){
+	this.attachListenersAndStart();
+   }
+
+   private attachListenersAndStart() {
+   	if(!this.mailListener) {
+   		console.error('no mail listener found');
+   	}
+   		this.mailListener.on("server:connected", function(){
 		console.log("imapConnected");
 	});
 
 	// @ts-expect-error
-	mailListener.on("mailbox", function(mailbox){
+	this.mailListener.on("mailbox", function(mailbox){
 		console.log("Total number of mails: ", mailbox.messages.total); // this field in mailbox gives the total number of emails
 	});
 
-	mailListener.on("server:disconnected", () => {
+	this.mailListener.on("server:disconnected", () => {
 		console.log("imapDisconnected");
-		process.exit(0); // exitting the whole app so that the entire thing is restarted
+		this.mailListener?.stop();
+		this.mailListener = createMailListener();
+		this.attachListenersAndStart();
 	});
 
 	// @ts-expect-error
-	mailListener.on("error", function(err){
+	this.mailListener.on("error", function(err){
 		console.log(err);
 	});
 
 	// @ts-expect-error
-	mailListener.on("mail", (mail, seqno) => {
+	this.mailListener.on("mail", (mail, seqno) => {
 		const parsed = parse(mail.html);
 		const element = parsed.querySelector("td");
-		// console.log("MAIL", mail.text, mail.attachments, parsed, element)
+		console.log("MAIL", {text: mail?.text, attachments: mail?.attachments, element: element?.textContent?.trim()})
 		let message = '';
 		if(mail.text)
 			message = mail.text.trim();
@@ -86,10 +81,8 @@ export class MailController {
 			console.error("Error Parsing Message:", parsed)
 		}
 	})
-	mailListener.start();
 
-	this.mailListener = mailListener;
-	this.mailTransporter = mailTransporter;
+	this.mailListener.start();
    }
 
    public sendMail({to, message}: {to: string, message: string}) {

@@ -30,6 +30,7 @@ interface PlaybackResponse {
 	shuffle_state?: boolean,
 	repeat_state?: string,
 	item?: TrackObject | EpisodeObject
+	currently_playing_type?: string;
 }
 
 dotenv.config();
@@ -41,6 +42,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
  export class SpotifyManager {
 
    private static token: string | undefined;
+   private static adWatchProcessId: any;
    static async init() {
   		if(!SpotifyManager.token) {
   			await SpotifyManager.refresh();
@@ -191,4 +193,18 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    			}
    		}
 
+   		static async skipAhead() {
+   			try {
+   				const { data, status } = await spotifyPost<any, any>(
+   					`https://api.spotify.com/v1/me/player/next`,
+   					{})
+   			} catch(error: any) {
+	   			const { status, message, reason } = error?.response?.data?.error ?? {};
+	   			if(reason === "NO_ACTIVE_DEVICE") {
+	   				throw new Error("ERROR: Could Not Skip\n\nNo device is actively playing")
+	   			}
+	   			console.error('error skipping',error?.response?.data)
+	   			throw error;
+   			}
+   		}
 }

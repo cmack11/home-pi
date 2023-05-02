@@ -7,11 +7,17 @@ export class MailMenu {
 		const rest = inputWords?.join(" ");
 		console.log(`command: ${command}`, `rest: ${rest}`)
 
+
+
 		switch(command) {
 			case "queue":
 				return await MailMenu.handleQueueInput({ input: rest });
-			//case "add":
-				//return await MailMenu.handleAddInput({ input: rest });
+			case "add":
+				return await MailMenu.handleAddInput({ input: rest });
+			case "health":
+				return "✅";
+			case "status":
+				return await MailMenu.handleStatusInput();
 			case "help":
 				return `Possible commands:\n - QUEUE\n - ADD`; 
 			case "slay":
@@ -54,6 +60,15 @@ export class MailMenu {
 			return response;
 		} catch(error: any) {
 			return error?.message ?? "Unknown Error. Could not complete request";
+		}
+	}
+
+	public static async handleStatusInput() {
+		const playback = await SpotifyManager.getCurrentPlayback();
+		if(!playback) {
+			return "No current playback";
+		} else {
+			return `STATUS\n\nPlayback Type: ${playback?.currently_playing_type}\n`;
 		}
 	}
 }
