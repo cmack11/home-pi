@@ -142,7 +142,6 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    		static async parseLinkAndAddToQueue(link: string) {
    			const uri = await SpotifyManager.getURI(link);
    			if(uri) {
-   				SpotifyManager.addToPlaylist(uri);
    				const position = await SpotifyManager.getQueuePosition(uri) ?? -1;
    				console.log(`position: ${position}`)
    				if(position > -1) {
