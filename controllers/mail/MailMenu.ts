@@ -1,4 +1,4 @@
-import { SpotifyManager } from '..';
+import { SpotifyManager, TrackObject, EpisodeObject } from '..';
 
 export class MailMenu {
 	public static async handleInput({ input = "" }: { input: string }) {
@@ -64,11 +64,21 @@ export class MailMenu {
 	}
 
 	public static async handleStatusInput() {
-		const playback = await SpotifyManager.getCurrentPlayback();
-		if(!playback) {
+		const { currently_playing, queue } = await SpotifyManager.getQueue();
+		if(!currently_playing) {
 			return "No current playback";
 		} else {
-			return `STATUS\n\nPlayback Type: ${playback?.currently_playing_type}\n`;
+			const { name } = currently_playing;
+			let source = '';
+			if((currently_playing as TrackObject)?.artists) {
+				source = (currently_playing as TrackObject)?.artists?.reduce((sum, a) => (sum === '' ? `${a?.name}` : `${sum}, ${a?.name}`),"")
+			} else {
+				source = (currently_playing as EpisodeObject)?.show?.name ?? '';
+			}
+			const spotOne = queue?.[0]?.name ?? ""
+			const spotTwo = queue?.[1]?.name ?? ""
+			const spotThree = queue?.[2]?.name ?? ""
+			return `STATUS\n\n🎵: ${name}\n🗣: ${source}\nComing Up:\n\t1️⃣: ${spotOne}\n\t2️⃣: ${spotTwo}\n\t3️⃣: ${spotThree}`;
 		}
 	}
 }

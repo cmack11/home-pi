@@ -4,34 +4,7 @@ import fs from 'fs';
 import { Buffer } from 'buffer'
 import { serialize, pluralize, getQueueResponseMessage } from './utilities';
 import { spotifyGet, spotifyPost } from './request';
-
-interface TokenResponse {
-	access_token?: string
-}
-
-interface TrackObject {
-		album?: {
-			name?: string,
-		},
-		artists: any[],
-		name?: string,
-		id?: string,
-		uri?: string,
-}
-type EpisodeObject = any;
-
-interface QueueResponse {
-	currently_playing?: TrackObject | EpisodeObject;
-	queue?: TrackObject[] | EpisodeObject[];
-}
-
-interface PlaybackResponse {
-	device?: any,
-	shuffle_state?: boolean,
-	repeat_state?: string,
-	item?: TrackObject | EpisodeObject
-	currently_playing_type?: string;
-}
+import { TokenResponse, PlaybackResponse, QueueResponse } from './types';
 
 dotenv.config();
 
@@ -128,7 +101,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    			try {
    				const { currently_playing, queue: initialQueue } = await SpotifyManager.getQueue();
    				const initialIndex = initialQueue?.findIndex(o =>  o?.uri?.includes(uri)) ?? -1;
-   				const isCurrentlyPlaying = currently_playing?.uri.includes(uri)
+   				const isCurrentlyPlaying = currently_playing?.uri?.includes(uri)
    				if(isCurrentlyPlaying) {
    					return 0;
    				} else if(initialIndex !== -1) {
