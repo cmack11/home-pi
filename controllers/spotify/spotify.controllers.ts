@@ -63,12 +63,12 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    			const linkWithURI = data.match(/(open.spotify.com\/track\/[\w-]+)/g)?.[0] ?? '';
    			const uri = linkWithURI?.substring(linkWithURI?.search(/\/[\w-]+/))?.replace("/track/","") ?? '';
    			if(!uri) {
-   				throw new Error("ERROR: Parse error\n\nCould not find song id")
+   				throw new Error("⚠️ ERROR: Parse error ⚠️\n\nCould not find song id")
    			}
    			return uri;
    		} catch(error: any) {
    			console.error("error getting uri", error?.response?.data)
-   			throw new Error("ERROR: Unknown link\n\nCould not find song id")
+   			throw new Error("⚠️ ERROR: Unknown link ⚠️\n\nCould not find song id")
    		}
    		}
 
@@ -78,7 +78,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
 	   			return data;
 	   		} catch(error: any) {
 	   			console.error("error getting queue", error?.response?.data)
-	   			throw new Error("ERROR: Could not fetch queue")
+	   			throw new Error("⚠️ ERROR: Could not fetch queue ⚠️")
 	   		}
    		}
 
@@ -90,7 +90,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    			} catch(error: any) {
 	   			const { status, message, reason } = error?.response?.data?.error ?? {};
 	   			if(reason === "NO_ACTIVE_DEVICE") {
-	   				throw new Error("ERROR: Could Not Add\n\nNo device is actively playing")
+	   				throw new Error("⚠️ ERROR: Could Not Add ⚠️\n\nNo device is actively playing")
 	   			}
 	   			console.error('error adding to queue',error?.response?.data)
 	   			throw error;
@@ -132,7 +132,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    						defaultMessagePostfix: " in the queue",
    					})
    				else 
-   					throw new Error("ERROR: Song not found after adding to queue")
+   					throw new Error("⚠️ ERROR: Song not found after adding to queue ⚠️")
 
    			}
    		}
@@ -143,7 +143,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    				// check playlist to see if it exists first
    				await SpotifyManager.addToPlaylist(uri)
    				// add playlist title to success message
-   				return `Success! Your request is now in the playlist`;
+   				return `Success! ✅ Your request is now in the playlist 🎵`;
    			}
    		}
 
@@ -157,9 +157,6 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    				return data;
    			} catch(error: any) {
 	   			const { status, message, reason } = error?.response?.data?.error ?? {};
-	   			/*if(reason === "NO_ACTIVE_DEVICE") {
-	   				throw new Error("ERROR: Could Not Add\n\nNo device is actively playing")
-	   			}*/
 	   			console.error('error adding to playlist',error?.response?.data)
 	   			throw new Error(message);
    			}
@@ -173,7 +170,7 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    			} catch(error: any) {
 	   			const { status, message, reason } = error?.response?.data?.error ?? {};
 	   			if(reason === "NO_ACTIVE_DEVICE") {
-	   				throw new Error("ERROR: Could Not Skip\n\nNo device is actively playing")
+	   				throw new Error("⚠️ ERROR: Could Not Skip ⚠️\n\nNo device is actively playing")
 	   			}
 	   			console.error('error skipping',error?.response?.data)
 	   			throw error;
