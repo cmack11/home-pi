@@ -3,10 +3,9 @@ import nodemailer from 'nodemailer';
 import {
   MailListener,
 } from "mail-listener5";  
-import { parse } from "node-html-parser";
 import { MailMenu } from './MailMenu';
 import { SpotifyManager } from '../spotify';
-import { convertInboundToOutboundAddress, createMailListener } from './utilities';
+import { convertInboundToOutboundAddress, createMailListener, parseMail } from './utilities';
 import { DIRECTORY, MY_ADDRESS} from './constants'
 
 dotenv.config();
@@ -64,31 +63,23 @@ export class MailController {
 	// @ts-expect-error
 	this.mailListener.on("mail", (mail, seqno) => {
 		const sender = mail?.from?.text ?? '';
+
+		const message = parseMail(mail);
+		console.log('PARSED', parseMail(mail))
+
 		// TODO: IF WE GET A FAILED SEND MESSAGE, HAVE A WAY TO RETRY SENDING
-		if([/no-reply@/].some(r => sender.match(r))){
+		if([/no-reply@/, /homepi/].some(r => sender.match(r))){
 			console.log('ignoring', sender)
 			return;
 		}
 
-		const parsed = parse(mail.html);
-		const element = parsed.querySelector("td");
-		// TODO: LIMIT ATTACHMENT LOG SO STUFF LIKE IMAGES DON'T OVERFLOW LOGS
-		console.log("MAIL", {text: mail?.text, attachments: mail?.attachments, element: element?.textContent?.trim()})
-		let message = '';
-		if(mail.text) {
-			message = mail.text.trim();
-		} else if(mail.attachments.length) {
-			message = mail.attachments[0].content.toString();
-		} else if(element) {
-			message = element.textContent.trim();
-		}
 		if(message) {
 			console.log("Recieved Message:", message)
 			MailMenu.handleInput({ input: message }).then((returnMessage = 'Error processing return message') => {
 				this.sendMail({ to: convertInboundToOutboundAddress({ to: mail.from.text }), message: returnMessage, originalMessage: message })
 			})
 		} else {
-			console.error("Error Parsing Message:", parsed)
+			console.error(`Error Parsing Message: "${message}"`)
 		}
 	})
 
@@ -104,14 +95,16 @@ export class MailController {
    	this.mailTransporter.sendMail({
   		to: to,
   		from:"homepireceiver@gmail.com",
+  		subject: "",
   		text: message,
+  		html: `<div dir="ltr">${message}</div>`,
   	})
   	// Logging all send mail to my own phone number
   	if(to !== MY_ADDRESS) {
   		this.mailTransporter.sendMail({
   			to: MY_ADDRESS,
   			from:"homepireceiver@gmail.com",
-  			text: `FROM: ${DIRECTORY[to]?.full_name ?? to}\n\nINPUT: "${originalMessage ?? ''}"\n\n OUTPUT: ${message}`
+  			text: `FROM: ${DIRECTORY[to]?.full_name ?? to}\n\nINPUT: "${originalMessage ?? ''}"\n\n OUTPUT: "${message}"`
   		})
   	}
    }

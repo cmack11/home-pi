@@ -12,6 +12,33 @@ export const convertInboundToOutboundAddress = ({ to }: { to: string }) => {
 	return to;
 }
 
+export const parseMail = (mail: any) => {
+	const { html, text, attachments, from } = mail; 
+	const sender = from?.text ?? '';
+	const parsed = parse(mail.html);
+	const element = parsed.querySelector("td");
+	console.info("RECEIVED MAIL", { sender, text, attachments, attachmentsContent: attachments?.map((e: any) => e?.content?.toString()?.slice(0,100)), html })
+	let message = '';
+	if(sender?.match(/@mms.att.net/)) {
+		message = parsed?.querySelector("td")?.textContent ?? ""
+	} else if(sender?.match(/@vzwpix.com/)) {
+		message = attachments?.[0]?.content?.toString();
+	} else if(sender?.match(/@tmomail.net/)) {
+		message = attachments?.[0]?.content?.toString();
+	} else {
+		if(text) {
+			message = text;
+		} else if(attachments.length) {
+			message = attachments?.[0]?.content?.toString();
+		} else if(element) {
+			message = element.textContent;
+		}
+	}
+
+	return message?.trim() ?? "";
+
+}
+
 
 export const createMailListener = () => {
 	const mailListener = new MailListener({
