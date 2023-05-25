@@ -68,7 +68,7 @@ export class MailController {
 		console.log('PARSED', parseMail(mail))
 
 		// TODO: IF WE GET A FAILED SEND MESSAGE, HAVE A WAY TO RETRY SENDING
-		if([/no-reply@/, /homepi/].some(r => sender.match(r))){
+		if([/no-reply@/, /homepireceiver/, /mailer-daemon@googlemail.com/].some(r => sender.match(r))){
 			console.log('ignoring', sender)
 			return;
 		}
