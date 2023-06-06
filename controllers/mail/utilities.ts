@@ -24,7 +24,10 @@ export const parseMail = (mail: any) => {
 	} else if(sender?.match(/@vzwpix.com/)) {
 		message = attachments?.[0]?.content?.toString();
 	} else if(sender?.match(/@tmomail.net/)) {
-		message = attachments?.[0]?.content?.toString();
+		message = attachments?.some(a => a?.contentType === "text/plain")?.content?.toString();
+		if(!message) {
+			message = text?.replaceAll(/\[cid:.*?\]/g, "")?.split("\n").pop();
+		}
 	} else {
 		if(text) {
 			message = text;
