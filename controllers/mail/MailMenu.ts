@@ -3,11 +3,15 @@ import { SpotifyManager, TrackObject, EpisodeObject } from '..';
 export class MailMenu {
 	public static async handleInput({ input = "" }: { input: string }) {
 		const inputWords = input?.trim()?.split(" ");
-		const command = inputWords?.shift()?.toLowerCase();
+		const commandRaw = inputWords?.shift() ?? "";
+		const command = commandRaw?.toLowerCase() ?? "";
 		const rest = inputWords?.join(" ");
 		console.log(`command: ${command}`, `rest: ${rest}`)
 
-
+		// eventually make this configurable to turn "quick add" off and on
+		if(await SpotifyManager.isSpotifyLink(commandRaw)) {
+			return MailMenu.handleQueueInput({ input: commandRaw });
+		}
 
 		switch(command) {
 			case "queue":

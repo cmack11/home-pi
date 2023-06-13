@@ -57,10 +57,12 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    		}
 
    		static async getURI(link: string) {
+         console.log(`"${link}"`)
    				try {
    			const { data, status } = await axios.get<string>(
    				link)
    			const linkWithURI = data.match(/(open.spotify.com\/track\/[\w-]+)/g)?.[0] ?? '';
+         console.log('uri', "\n\n", linkWithURI)
    			const uri = linkWithURI?.substring(linkWithURI?.search(/\/[\w-]+/))?.replace("/track/","") ?? '';
    			if(!uri) {
    				throw new Error("⚠️ ERROR: Parse error ⚠️\n\nCould not find song id")
@@ -146,6 +148,15 @@ var refresh_token = process.env.SPOTIFY_REFRESH_TOKEN;
    				return `Success! ✅ Your request is now in the playlist 🎵`;
    			}
    		}
+
+       static async isSpotifyLink(link: string) {
+         try {
+           const uri = await SpotifyManager.getURI(link);
+           return Boolean(uri);
+         } catch(e) {
+           return false;
+         }
+       }
 
    		static async addToPlaylist(trackURI: string, playlistId: string = "5Nk623STRCyYwH7XhX32R6") {
    			try {

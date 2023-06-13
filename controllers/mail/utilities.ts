@@ -25,9 +25,7 @@ export const parseMail = (mail: any) => {
 		message = attachments?.[0]?.content?.toString();
 	} else if(sender?.match(/@tmomail.net/)) {
 		message = attachments?.some((a: any) => a?.contentType === "text/plain")?.content?.toString();
-		console.log(`TMOMAIL 1: "${mail}"`)
 		if(!message) {
-			console.log(`TMOMAIL 2: "${text}"`)
 			message = text?.replace(/\[cid:.*?\]/g, "")?.split("\n").pop() ?? "";
 		}
 	} else {
