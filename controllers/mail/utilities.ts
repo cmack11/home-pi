@@ -28,7 +28,7 @@ export const parseMail = (mail: any) => {
 		console.log(`TMOMAIL 1: "${mail}"`)
 		if(!message) {
 			console.log(`TMOMAIL 2: "${text}"`)
-			message = text?.replaceAll(/\[cid:.*?\]/g, "")?.split("\n").pop() ?? "";
+			message = text?.replace(/\[cid:.*?\]/g, "")?.split("\n").pop() ?? "";
 		}
 	} else {
 		if(text) {
