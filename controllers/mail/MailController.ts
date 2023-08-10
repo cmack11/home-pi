@@ -13,6 +13,7 @@ dotenv.config();
 export class MailController {
 	public mailTransporter: nodemailer.Transporter | undefined;
 	public mailListener: any | undefined;
+	private shutdown = false;
 
    constructor() {
    	SpotifyManager.init();
@@ -26,7 +27,15 @@ export class MailController {
 	  	  pass: process.env.EMAIL_PASS, // pass
 	    },
 	    logger: true
- 	})
+	})
+
+	setInterval(() => {
+	 	if(this.shutdown) {
+	 		this.shutdown = false;
+	 		this.mailListener = createMailListener();
+	 		this.attachListenersAndStart();
+	 	}
+	 }, 1000*10)
 
 	const mailListener = createMailListener();
 	this.mailListener = mailListener;
@@ -51,8 +60,8 @@ export class MailController {
 	this.mailListener.on("server:disconnected", () => {
 		console.log("imapDisconnected");
 		this.mailListener?.stop();
-		this.mailListener = createMailListener();
-		this.attachListenersAndStart();
+		this.mailListener = undefined;
+		this.shutdown = true;
 	});
 
 	// @ts-expect-error
